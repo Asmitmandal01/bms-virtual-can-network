@@ -1,0 +1,79 @@
+[
+  {
+    "test_id": "TC-01",
+    "title": "SOC Observer Convergence & Dynamic Tracking",
+    "requirement": "SOC estimation RMSE <= 1.0% from 5.0% initial offset under dynamic load",
+    "injected_condition": "Initial SOC offset -5.0% (73% vs 78% true), +85A discharge / -95A charge",
+    "expected_response": "Observer converges cleanly; contactor stays CLOSED; RMSE <= 1.0%",
+    "measured_result": "RMSE = 0.05%, Final Error = 0.04%, State = FAST_CHARGE",
+    "reaction_time_ms": 0.0,
+    "max_allowed_ms": 0.0,
+    "passed": true
+  },
+  {
+    "test_id": "TC-02",
+    "title": "Cell Over-Voltage (OV) Cut-Off Protection",
+    "requirement": "Open HV contactors within <= 200 ms when any cell > 4200 mV (3 consecutive frames)",
+    "injected_condition": "Cell 3 forced to 4265 mV at t = 1.00 s during fast charge",
+    "expected_response": "BMS enters FAULT_CUTOFF, opens contactor, broadcasts 0x080 DTC 0x0A80",
+    "measured_result": "Tripped at t=1.10s (DTC 0x0A80, Contactor=OPEN)",
+    "reaction_time_ms": 100.0,
+    "max_allowed_ms": 200.0,
+    "passed": true
+  },
+  {
+    "test_id": "TC-03",
+    "title": "Cell Under-Voltage (UV) Cut-Off Protection",
+    "requirement": "Open HV contactors within <= 200 ms when any cell < 2800 mV (3 consecutive frames)",
+    "injected_condition": "Cell 2 forced to 2710 mV at t = 1.00 s during 90A discharge",
+    "expected_response": "BMS enters FAULT_CUTOFF, opens contactor, broadcasts 0x080 DTC 0x0A81",
+    "measured_result": "Tripped at t=1.10s (DTC 0x0A81, Contactor=OPEN)",
+    "reaction_time_ms": 100.0,
+    "max_allowed_ms": 200.0,
+    "passed": true
+  },
+  {
+    "test_id": "TC-04",
+    "title": "Module Over-Temperature (OT) Thermal Runaway Cut-Off",
+    "requirement": "Open HV contactors within <= 350 ms when module temp > 60.0 \u00b0C (3 consecutive 100ms frames)",
+    "injected_condition": "Module 2 thermistor forced to 64.2 \u00b0C at t = 1.00 s",
+    "expected_response": "BMS enters FAULT_CUTOFF, opens contactor, broadcasts 0x080 DTC 0x0A78",
+    "measured_result": "Tripped at t=1.20s (DTC 0x0A78, Contactor=OPEN)",
+    "reaction_time_ms": 200.0,
+    "max_allowed_ms": 350.0,
+    "passed": true
+  },
+  {
+    "test_id": "TC-05",
+    "title": "Pack Over-Current (OC) Short-Circuit Protection",
+    "requirement": "Open HV contactors within <= 100 ms when |I_pack| > 200.0 A (3 consecutive 20ms frames)",
+    "injected_condition": "Pack current sensor spiked to +235.0 A at t = 1.00 s",
+    "expected_response": "BMS enters FAULT_CUTOFF, opens contactor, broadcasts 0x080 DTC 0x0A90",
+    "measured_result": "Tripped at t=1.04s (DTC 0x0A90, Contactor=OPEN)",
+    "reaction_time_ms": 40.0,
+    "max_allowed_ms": 100.0,
+    "passed": true
+  },
+  {
+    "test_id": "TC-06",
+    "title": "CAN Bus Sensor Heartbeat Loss / Watchdog Cut-Off",
+    "requirement": "Transition to safe state within <= 130 ms if Sensor_Node 0x101 frames cease",
+    "injected_condition": "Sensor_Node CAN TX muted at t = 1.00 s (simulated wire break)",
+    "expected_response": "BMS watchdog expires, opens contactor, broadcasts 0x080 DTC 0xC100",
+    "measured_result": "Tripped at t=1.08s (DTC 0xC100, Contactor=OPEN)",
+    "reaction_time_ms": 80.0,
+    "max_allowed_ms": 130.0,
+    "passed": true
+  },
+  {
+    "test_id": "TC-07",
+    "title": "Single-Sample EMI Glitch Rejection (Debounce Immunity)",
+    "requirement": "Must NOT false-trip HV contactors on a 1-frame (< 150 ms) voltage spike",
+    "injected_condition": "Cell 1 spiked to 4250 mV for 1 frame (50 ms) at t = 1.00 s, then normal",
+    "expected_response": "Debounce counter increments to 1 then decays to 0; Contactor stays CLOSED",
+    "measured_result": "State=NORMAL_DRIVE, FaultFlags=0x00, Contactor=CLOSED",
+    "reaction_time_ms": 0.0,
+    "max_allowed_ms": 0.0,
+    "passed": true
+  }
+]
